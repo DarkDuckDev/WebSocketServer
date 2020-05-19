@@ -1,12 +1,12 @@
 package com.youtubeloader.videoloader.web;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
@@ -17,6 +17,7 @@ import java.time.Instant;
 public class StreamInfoController {
 
     private final SimpMessagingTemplate template;
+    private final SimpUserRegistry simpUserRegistry;
 
     @MessageMapping("/connect")
     @SendTo("/topic/connect")
@@ -30,7 +31,7 @@ public class StreamInfoController {
         return "Message: " + message;
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 5000)
     public void batchSend() {
         template.convertAndSend("/topic/message", Instant.now().toString());
     }

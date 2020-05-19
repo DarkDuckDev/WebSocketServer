@@ -12,6 +12,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.server.HandshakeFailureException;
 import org.springframework.web.socket.server.HandshakeHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
@@ -27,7 +28,7 @@ import java.util.Map;
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 @Slf4j
-public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+public class WebSocketConfigurer implements WebSocketMessageBrokerConfigurer {
 
 
     @Override
@@ -35,7 +36,25 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
         registry
                 .addEndpoint("/connect", "/message")
                 .setAllowedOrigins("*")
-                .addInterceptors(new CustomHandshakeInterceptor());
+                .setHandshakeHandler(
+                        new DefaultHandshakeHandler() {
+                            public boolean beforeHandshake(
+                                    ServerHttpRequest request,
+                                    ServerHttpResponse response,
+                                    WebSocketHandler wsHandler,
+                                    Map attributes) throws Exception {
+
+                                if (request instanceof ServletServerHttpRequest) {
+                                    ServletServerHttpRequest servletRequest
+                                            = (ServletServerHttpRequest) request;
+                                    HttpSession session = servletRequest
+                                            .getServletRequest().getSession();
+                                    attributes.put("sessionId", session.getId());
+                                }
+                                return true;
+                            }
+                        });
+//                .addInterceptors(new CustomHandshakeInterceptor());
 //                .setHandshakeHandler(new CustomHandshakeHandler());
     }
 
